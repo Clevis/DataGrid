@@ -1,0 +1,13 @@
+{=ClientRenderer::render($control)}
+{snippet selection}
+<div class="selection" data-count="{=count($data)}">
+	{foreach $data as $entity}
+		{first}
+			<strong>Výběr:</strong>
+			<a href="{link show!}">zobrazit</a>
+			<a href="{link clear!}">clear</a>
+		{/first}
+		{$column->getHeaderValue($entity)}{sep}, {/sep}
+	{/foreach}
+</div>
+{/snippet}

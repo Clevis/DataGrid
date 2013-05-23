@@ -1,0 +1,12 @@
+{
+	"name": "clevis/datagrid",
+	"version": "0.1.0",
+	"type": "library",
+	"description": "Simple DataGrid",
+	"require": {
+		"php": ">=5.3.0"
+	},
+	"autoload": {
+        "classmap": ["DataGrid/"]
+    }
+}

@@ -1,0 +1,165 @@
+{if $grid->hasFilter()}
+	{? $grid->filters->getElementPrototype()->addClass('form-search');}
+	{$grid->filters->render('begin')}
+	{$grid->filters->render('errors')}
+{/if}
+{if $grid->getComponent('selection', false)}
+	{control $grid['selection']}
+{/if}
+{*{if $grid->hasActiveFilter()}
+	<div class="filterInfo">
+		<strong>Filtrováno:</strong>
+		{foreach array_filter(iterator_to_array($grid->getFilters()->getComponents(false, 'BaseFilter')), create_function('$filter', 'return $filter->isActive();')) as $filter}
+			{$filter->getLabel()}: <strong>{$filter->getReadableValue()}</strong>{sep}, {/sep}
+		{/foreach}
+		{$grid->filters['___filter']->control->style('display: none')}
+		{$grid->filters['___clear']->control}
+		<br>
+		Nalezeno <strong>{$paginator->getItemCount()}</strong> položek z <strong>{$grid->getDataSource()->count()}</strong>
+	</div>
+{/if}*}
+
+
+<div class="gridFulltext" n:if="$grid->hasFilter()">
+	{var $filter = $grid->filters->getComponent('___fulltext', false)}
+	{if $filter}
+		{? $filter['text']->control->addClass('search-query')->addClass('span2');}
+    	<div class="input-append">
+		{$filter->render()}
+		{$grid->filters['___filter']->control->value('hledat')->addClass('btn')}
+		{if $grid->hasActiveFilter()}
+			{$grid->filters['___clear']->control->value('vše')->addClass('btn')}
+		{/if}
+		</div>
+	{/if}
+
+	{var $filter = $grid->filters->getComponent('___select', false)}
+	{if $filter}
+		{? $filter['text']->control->addClass('search-query')->addClass('span2');}
+		<div class="input-append">
+			{$filter->render()}
+			{$grid->filters['___filter']->control->value('hledat')->addClass('btn')}
+			{if $grid->hasActiveFilter()}
+				{$grid->filters['___clear']->control->value('vše')->addClass('btn')}
+			{/if}
+		</div>
+	{/if}
+</div>
+
+<table n:block="#table" id="{$grid->getUniqueId()}" class="table list grid" cellpadding="0" cellspacing="0" border="0">
+	<thead>
+		<tr>
+			<th n:foreach="$columns as $name => $col">
+				{if $col->isOrderable()}
+					<a {if $grid->order === $name}class="active"{/if} href="{link order $name}">{$col->getLabel()}</a> <a class="asc{if $grid->order === $name AND $grid->orderDir === DataGrid\Grid::DESC} active activeAsc{/if}" href="{link order $name, DataGrid\Grid::DESC}" title="vzestupně" style="text-decoration: none;">↑</a> <a class="desc{if $grid->order === $name AND $grid->orderDir === DataGrid\Grid::ASC} active activeDesc{/if}" href="{link order $name, DataGrid\Grid::ASC}" title="sestupně" style="text-decoration: none;">↓</a>
+				{else}
+					{$col->getLabel()}
+				{/if}
+			</th>
+		</tr>
+		{*<tr n:if="$grid->hasFilter()">
+			<th n:foreach="$columns as $name => $col">
+				{var $filter = $grid->filters->getComponent($name, false)}
+				{if $filter}
+					{$filter->render()}
+				{/if}
+				{if $iterator->last}
+					{$grid->filters['___filter']->getControl()}
+					{$grid->filters['___clear']->getControl()}
+				{/if}
+			</th>
+		</tr>*}
+	</thead>
+	<tbody>
+		{if !count($data)}
+			<tr><td colspan="{=count($columns)}">
+				<strong>Žádný záznam{if $grid->hasActiveFilter()} nenalezen{/if}.</strong>
+			</td></tr>
+		{else}
+			<tr n:foreach="$data as $row" rowId="{$row->id}">
+				<td n:foreach="$columns as $name => $col">
+					<?php $value = $col->getValue($row); $value = $value instanceof \Nette\Utils\Html ? $value : (string) $value; ?>
+					{$value}
+				</td>
+			</tr>
+		{/if}
+	</tbody>
+</table>
+
+<div n:block="#pagination" class="pagination">
+
+	{var $pageCount = $paginator->pageCount}
+	{if $pageCount > 1}
+		<ul>
+			<li n:class="$paginator->isFirst() ? 'disabled' : ''"><a n:href="prev">&laquo;&nbsp;předchozí</a></li>
+
+			{if $pageCount > 10} {* hodně stránek, chce to zkultivovat *}
+				{* první dvě *}
+				<li n:class="$paginator->page == 1 ? 'active' : ''"><a n:href="page 1">1</a></li>
+				<li n:class="$paginator->page == 2 ? 'active' : ''"><a n:href="page 2">2</a></li>
+				{* třetí a čtvrtý, aby byly v řadě *}
+				<li n:if="$paginator->page == 2 || $paginator->page == 3" n:class="$paginator->page == 3 ? 'active' : ''"><a n:href="page 3">3</a></li>
+				<li n:if="$paginator->page == 3" n:class="$paginator->page == 4 ? 'active' : ''"><a n:href="page 4">4</a></li>
+
+				{* oddělovač *}
+				<li n:if="$paginator->page > 4" class="disabled"><a href="#">...</a></li>
+
+				{* tři dokazy mezi *}
+				{if ($paginator->page > 3) && ($paginator->page < $pageCount - 2)}
+						<li><a n:href="page $paginator->page - 1">{$paginator->page - 1}</a></li>
+						<li class="active"><a n:href="page $paginator->page">{$paginator->page}</a></li>
+						<li><a n:href="page $paginator->page + 1">{$paginator->page + 1}</a></li>
+				{/if}
+
+				{* oddělovač *}
+				<li n:if="$paginator->page < $pageCount - 3" class="disabled"><a href="#">...</a></li>
+
+				{* třetí a čtvrtý odzadu, aby byly v řadě *}
+				<li n:if="$paginator->page == $pageCount - 2" n:class="$paginator->page == $pageCount - 3 ? 'active' : ''"><a n:href="page $pageCount - 3">{$pageCount - 3}</a></li>
+				<li n:if="$paginator->page == $pageCount - 2 || $paginator->page == $pageCount - 1" n:class="$paginator->page == $pageCount - 2 ? 'active' : ''"><a n:href="page $pageCount - 2">{$pageCount - 2}</a></li>
+
+				{* poslední dvě *}
+				<li n:class="$paginator->page == $pageCount - 1 ? 'active' : ''"><a n:href="page $pageCount - 1">{$pageCount - 1}</a></li>
+				<li n:class="$paginator->page == $pageCount ? 'active' : ''"><a n:href="page $pageCount">{$pageCount}</a></li>
+			{else}
+ 				{* málo stránek *}
+				{for $page=1; $page <= $paginator->getPageCount(); $page++}
+					<li n:class="$paginator->page == $page ? 'active' : ''">
+						<a n:href="page $page">{$page}</a>
+					</li>
+				{/for}
+			{/if}
+
+			<li n:class="$paginator->isLast() ? 'disabled' : ''"><a n:href="next">další&nbsp;&raquo;</a></li>
+		</ul>
+	{/if}
+
+	{if ($grid->defaultItemsPerPage AND $paginator->getItemCount() > $grid->defaultItemsPerPage) OR $pageCount > 1}
+		<ul style='float: right'>
+			{var $itemPerPage = $grid->getItemPerPage()}
+	    	<li n:class="$itemPerPage ? '' : 'active'"><a n:href="items">vše</a></li>
+	    	<li n:foreach="array(30,60,90,120) as $pp" n:class="$itemPerPage == $pp ? 'active' : ''"><a n:href="items $pp">{$pp}</a></li>
+		</ul>
+	{/if}
+    <div class="clear">&nbsp;</div>
+</div>
+
+
+{if $grid->hasFilter()}
+	{$grid->filters->render('end')}
+{/if}
+
+{*
+<script>
+	$('.grid th input:checkbox, .grid th input:text, .grid th select, .gridFulltext input:text').change(function () {
+		$('.grid th input:submit:first').click();
+	});
+
+	$('.grid tr').click(function (eventObject) {
+		if (!$(eventObject.target).is('a') && !$(eventObject.target).is('input'))
+		{
+			$(this).toggleClass('selected');
+		}
+	});
+</script>
+*}
